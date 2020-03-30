@@ -2,7 +2,10 @@ package com.volkodav4ik;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
 
+import java.io.IOException;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -22,8 +25,7 @@ public class Main {
         DATE_FORMAT.setLenient(true);
     }
 
-    public static void main(String[] args) {
-
+    public static void main(String[] args) throws IOException {
         System.out.println("Please, enter date in format DD.MM.YYYY:");
         String responseDate = SCANNER.nextLine();
         LocalDate ld = LocalDate.parse(responseDate, DateTimeFormatter.ofPattern(DATE_FORMATTTER));
@@ -47,6 +49,21 @@ public class Main {
         Currency currency = currencyFromPb(response.getBody());
         System.out.printf("Exchange course of USD in PrivatBank on date %s:\nSale: %.2f\nPurchase: %.2f",
                 responseDate, currency.getSaleDollar(), currency.getPurchaseDollar());
+
+
+        System.out.println("\n============================================");
+        System.out.println("Recieving data via okHttp Library:");
+
+        OkHttpClient client = new OkHttpClient().newBuilder()
+                .build();
+        Request request = new Request.Builder()
+                .url(urlWithData)
+                .method("GET", null)
+                .build();
+        String okhttp3BodyString = client.newCall(request).execute().body().string();
+        Currency currencyFromOkHttp = currencyFromPb(okhttp3BodyString);
+        System.out.printf("Exchange course of USD in PrivatBank on date %s:\nSale: %.2f\nPurchase: %.2f",
+                responseDate, currencyFromOkHttp.getSaleDollar(), currencyFromOkHttp.getPurchaseDollar());
     }
 
     private static boolean dateIsValid(String date) {
